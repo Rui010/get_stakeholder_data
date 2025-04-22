@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, String, Integer, ForeignKey
+from sqlalchemy import Boolean, Column, String, Integer, ForeignKey, text
 from get_stakeholder_data.models.base import Base
 from get_stakeholder_data.domain.director import Director
 
@@ -18,7 +18,9 @@ class DirectorsModel(Base):
     name_clean = Column(String, nullable=True)
     title_clean = Column(String, nullable=True)
     birth_date_iso = Column(String, nullable=True)
-    needs_review = Column(Boolean, nullable=False, default=False)
+    needs_review = Column(
+        Boolean, nullable=False, default=False, server_default=text("0")
+    )
 
     @classmethod
     def from_dataclass(cls, director: Director, doc_id: str) -> "DirectorsModel":

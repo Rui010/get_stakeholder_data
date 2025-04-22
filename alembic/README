@@ -1,1 +1,10 @@
 Generic single-database configuration.
+
+1. models内のクラスを変更する
+2. 下記からマイグレーションファイルを作成する
+    alembic revision --autogenerate -m "Add name_clean, title_clean, birth_date_iso, needs_review column to directors table"
+3. マイグレーションを適用
+    alembic upgrade head
+
+- ダウングレード
+    alembic downgrade (リビジョン)
