@@ -9,6 +9,7 @@ from google import genai
 from google.genai.errors import APIError
 
 from get_stakeholder_data.services.logger import Logger
+import time
 
 logger = Logger()
 
@@ -40,27 +41,46 @@ def ai_parser(xml_data: str, prompt_filename: str) -> Optional[Dict[str, Any]]:
 
     prompt = load_prompt_template(prompt_filename, xml_data=xml_data)
 
-    try:
-        client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model="gemini-2.0-flash-lite",
-            contents=prompt,
-        )
-        # Markdownコードブロック（```json ～ ```）を除去
-        cleaned_text = re.sub(
-            r"^```json\s*|\s*```$", "", response.text.strip(), flags=re.DOTALL
-        )
-        return json.loads(cleaned_text)
+    max_retries = 3
+    retry_delay = 60  # 秒
 
-    except APIError as e:  # API制限エラー
-        logger.error(f"Gemini APIの制限に達しました: {e}")
-        raise SystemExit("Gemini APIの制限に達したため、プログラムを終了します。")
+    for attempt in range(1, max_retries + 1):
+        try:
+            client = genai.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model="gemini-2.0-flash-lite",
+                contents=prompt,
+            )
+            # Markdownコードブロック（```json ～ ```）を除去
+            cleaned_text = re.sub(
+                r"^```json\s*|\s*```$", "", response.text.strip(), flags=re.DOTALL
+            )
+            return json.loads(cleaned_text)
 
-    except json.JSONDecodeError as e:
-        logger.error(f"[JSON ERROR] パース失敗: {e}")
-        logger.error(f"[RAW OUTPUT] {response.text}")
-        return None
+        except APIError as e:  # API制限エラー
+            if e.code in {502, 503, 504}:
+                logger.warning(
+                    f"サーバーエラー {e.status_code}が発生しました。リトライ {attempt}/{max_retries}"
+                )
+                if attempt < max_retries:
+                    time.sleep(retry_delay)
+                    continue
+                else:
+                    logger.error(f"リトライ回数を超えました: {e}")
+                    raise SystemExit(
+                        "Gemini APIのサーバエラーにより、プログラムを終了します。"
+                    ) < e
+            else:
+                logger.error(f"Gemini APIの制限に達しました: {e}")
+                raise SystemExit(
+                    "Gemini APIの制限に達したため、プログラムを終了します。"
+                )
 
-    except Exception as e:
-        logger.error(f"予期しないエラーが発生しました: {e}")
-        return None
+        except json.JSONDecodeError as e:
+            logger.error(f"[JSON ERROR] パース失敗: {e}")
+            logger.error(f"[RAW OUTPUT] {response.text}")
+            return None
+
+        except Exception as e:
+            logger.error(f"予期しないエラーが発生しました: {e}")
+            return None

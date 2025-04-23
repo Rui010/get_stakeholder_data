@@ -22,8 +22,8 @@ def main():
     init_db()  # DBの初期化
     session = SessionLocal()
     logger = Logger()  # ロガーのインスタンスを作成
-    start_date = datetime(2024, 11, 1)
-    end_date = datetime(2024, 12, 31)
+    start_date = datetime(2025, 3, 1)
+    end_date = datetime(2025, 3, 31)
     current = start_date
     while current <= end_date:
         docs = get_documents(current)
