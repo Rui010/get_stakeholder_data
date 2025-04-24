@@ -22,6 +22,8 @@ def normalize_date(date_str: str) -> str:
     Returns:
         str: ISO形式の日付文字列（YYYY-MM-DD）
     """
+    if not date_str:
+        return None
     # 全角数字を半角に変換
     date_str = date_str.translate(str.maketrans("０１２３４５６７８９", "0123456789"))
 

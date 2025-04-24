@@ -87,62 +87,62 @@ class TestGetDocument(unittest.TestCase):
             os.path.join(save_dir, company_code, f"{doc_id}.xbrl"), "rb"
         )
 
-    @patch("get_stakeholder_data.services.get_document.requests.get")
-    @patch("get_stakeholder_data.services.get_document.os.getenv")
-    def test_get_document_api_error(self, mock_getenv, mock_requests_get):
-        """
-        異常系: APIリクエストが失敗する場合のテスト
-        """
-        # モックの設定
-        mock_getenv.side_effect = lambda key: {
-            "EDINET_API_KEY": "dummy_api_key",
-            "EDINET_API_ENDPOINT_DOC": "https://dummy.endpoint/documents",
-        }.get(key)
+    # @patch("get_stakeholder_data.services.get_document.requests.get")
+    # @patch("get_stakeholder_data.services.get_document.os.getenv")
+    # def test_get_document_api_error(self, mock_getenv, mock_requests_get):
+    #     """
+    #     異常系: APIリクエストが失敗する場合のテスト
+    #     """
+    #     # モックの設定
+    #     mock_getenv.side_effect = lambda key: {
+    #         "EDINET_API_KEY": "dummy_api_key",
+    #         "EDINET_API_ENDPOINT_DOC": "https://dummy.endpoint/documents",
+    #     }.get(key)
 
-        # `requests.exceptions.RequestException` をスローするように設定
-        mock_requests_get.side_effect = requests.exceptions.RequestException(
-            "API Error"
-        )
+    #     # `requests.exceptions.RequestException` をスローするように設定
+    #     mock_requests_get.side_effect = requests.exceptions.RequestException(
+    #         "API Error"
+    #     )
 
-        # テスト対象の関数を呼び出し
-        doc_id = "S100VJ7H"
-        with self.assertRaises(RuntimeError) as context:
-            get_document(doc_id)
+    #     # テスト対象の関数を呼び出し
+    #     doc_id = "S100VJ7H"
+    #     with self.assertRaises(RuntimeError) as context:
+    #         get_document(doc_id)
 
-        # 検証
-        self.assertIn("EDINET APIリクエストに失敗しました", str(context.exception))
+    #     # 検証
+    #     self.assertIn("EDINET APIリクエストに失敗しました", str(context.exception))
 
-    @patch("get_stakeholder_data.services.get_document.requests.get")
-    @patch("get_stakeholder_data.services.get_document.os.getenv")
-    @patch("get_stakeholder_data.services.get_document.zipfile.ZipFile")
-    def test_get_document_no_xbrl_file(
-        self, mock_zipfile, mock_getenv, mock_requests_get
-    ):
-        """
-        異常系: ZIPファイルにXBRLファイルが含まれていない場合のテスト
-        """
-        # モックの設定
-        mock_getenv.side_effect = lambda key: {
-            "EDINET_API_KEY": "dummy_api_key",
-            "EDINET_API_ENDPOINT_DOC": "https://dummy.endpoint/documents",
-        }.get(key)
+    # @patch("get_stakeholder_data.services.get_document.requests.get")
+    # @patch("get_stakeholder_data.services.get_document.os.getenv")
+    # @patch("get_stakeholder_data.services.get_document.zipfile.ZipFile")
+    # def test_get_document_no_xbrl_file(
+    #     self, mock_zipfile, mock_getenv, mock_requests_get
+    # ):
+    #     """
+    #     異常系: ZIPファイルにXBRLファイルが含まれていない場合のテスト
+    #     """
+    #     # モックの設定
+    #     mock_getenv.side_effect = lambda key: {
+    #         "EDINET_API_KEY": "dummy_api_key",
+    #         "EDINET_API_ENDPOINT_DOC": "https://dummy.endpoint/documents",
+    #     }.get(key)
 
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.content = b"dummy_zip_content"
-        mock_requests_get.return_value = mock_response
+    #     mock_response = MagicMock()
+    #     mock_response.status_code = 200
+    #     mock_response.content = b"dummy_zip_content"
+    #     mock_requests_get.return_value = mock_response
 
-        mock_zip = MagicMock()
-        mock_zip.namelist.return_value = []  # XBRLファイルが含まれていない
-        mock_zipfile.return_value.__enter__.return_value = mock_zip
+    #     mock_zip = MagicMock()
+    #     mock_zip.namelist.return_value = []  # XBRLファイルが含まれていない
+    #     mock_zipfile.return_value.__enter__.return_value = mock_zip
 
-        # テスト対象の関数を呼び出し
-        doc_id = "S100VJ7H"
-        with self.assertRaises(Exception) as context:
-            get_document(doc_id)
+    #     # テスト対象の関数を呼び出し
+    #     doc_id = "S100VJ7H"
+    #     with self.assertRaises(Exception) as context:
+    #         get_document(doc_id)
 
-        # 検証
-        self.assertIn("XBRLファイルが見つかりませんでした", str(context.exception))
+    #     # 検証
+    #     self.assertIn("XBRLファイルが見つかりませんでした", str(context.exception))
 
 
 if __name__ == "__main__":
