@@ -8,6 +8,7 @@ from get_stakeholder_data.models.directors_model import DirectorsModel  # 新し
 from get_stakeholder_data.models.shareholders_model import (
     ShareholdersModel,
 )  # 新しいモデル
+from get_stakeholder_data.models.stocks_model import StocksModel  # 新しいモデル
 
 
 load_dotenv()

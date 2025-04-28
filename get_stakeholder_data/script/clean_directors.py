@@ -6,10 +6,45 @@ from datetime import datetime
 
 def clean_directors():
     session = SessionLocal()
-    for director in session.query(DirectorsModel).limit(10).all():
-        director.name_clean = director.name.replace(" ", "")
-        # director.title_clean = director.title.replace(" ", "")
-        director.birth_date_iso = normalize_date(director.birth_date)
+    try:
+        for director in session.query(DirectorsModel).all():
+            director.name_clean = normalize_name(director.name)
+            director.birth_date_iso = normalize_date(director.birth_date)
+            session.commit()
+    except Exception as e:
+        session.rollback()
+        print(f"Error: {e}")
+    finally:
+        session.close()
+
+
+def normalize_name(name: str) -> str:
+
+    if not name or name.strip() == "":
+        return None
+
+    # 1. 全角英数字を半角に
+    name = name.translate(
+        str.maketrans(
+            "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ"
+            "ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ"
+            "０１２３４５６７８９",
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ" "abcdefghijklmnopqrstuvwxyz" "0123456789",
+        )
+    )
+
+    # 2. 括弧（）内を削除
+    name = re.sub(r"\（.*?\）|\(.*?\)", "", name)
+
+    # 3. 日本語を含むかチェック
+    if re.search(r"[\u3040-\u30FF\u4E00-\u9FFF]", name):
+        # 日本語が含まれる場合はすべてスペース削除
+        name = re.sub(r"\s+", "", name)
+    else:
+        # 英語だけならスペース1個に整形
+        name = re.sub(r"\s+", " ", name)
+
+    return name.strip()
 
 
 def normalize_date(date_str: str) -> str:
@@ -33,9 +68,10 @@ def normalize_date(date_str: str) -> str:
     # 「年」「月」をハイフンに置き換え
     date_str = re.sub(r"[年月]", "-", date_str)
 
-    # 「日」「生」を削除
-    date_str = date_str.replace("日", "")
-    date_str = date_str.replace("生", "")
+    # 「日」「生」「()」「（）」余計な文字を削除
+    ext_chars = ["日", "生", "(", "（", ")", "）"]
+    for char in ext_chars:
+        date_str = date_str.replace(char, "")
 
     # 不要なスペースを削除
     date_str = date_str.strip()
@@ -43,7 +79,6 @@ def normalize_date(date_str: str) -> str:
     # 月や日の1桁を2桁に補正
     date_str = re.sub(r"-(\d)-", r"-0\1-", date_str)  # 月
     date_str = re.sub(r"-(\d)$", r"-0\1", date_str)  # 日
-    print(date_str)
 
     # ISO形式に変換
     try:

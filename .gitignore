@@ -12,6 +12,10 @@ __pycache__/
 
 # スクレイピングや生成されたデータ
 xbrl_data/
+stocks_data/
+*.csv
+*.json
+*.xls
 
 # データベースファイル
 *.sqlite3
