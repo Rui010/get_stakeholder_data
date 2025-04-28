@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Integer, ForeignKey
 from get_stakeholder_data.models.base import Base
 
 
-class ShareholdersModel(Base):
+class StocksModel(Base):
     __tablename__ = "stocks"
 
     code = Column(String, primary_key=True)

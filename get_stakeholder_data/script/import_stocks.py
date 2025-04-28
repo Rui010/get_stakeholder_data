@@ -52,10 +52,10 @@ def import_stocks(excel_file_path: str) -> None:
             stock = StocksModel(
                 code=row["コード"],
                 name=row["銘柄名"],
-                market=row["市場・区分"],
-                sector_33=row["33業種コード"],
-                sector_17=row["17業種コード"],
-                scale=row["規模"],
+                market=row["市場・商品区分"],
+                sector_33=row["33業種区分"],
+                sector_17=row["17業種区分"],
+                scale=row["規模区分"],
             )
             session.add(stock)
         session.commit()
@@ -69,5 +69,5 @@ def import_stocks(excel_file_path: str) -> None:
 
 if __name__ == "__main__":
     import_stocks(
-        "get_stakeholder_data\stocks_data\data_j.xls",
+        r"stocks_data\data_j.xls",
     )
